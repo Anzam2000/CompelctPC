@@ -1,0 +1,37 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Успешная отправка</title>
+    <link rel="stylesheet" href="{% static 'css/succses.css' %}">
+
+</head>
+<body>
+    <div class="success-message">
+        <h2>Ваша конфигурация успешно сохранена!</h2>
+
+        <div class="config-list">
+            <h3>Последние сохранённые конфигурации:</h3>
+
+            {% for config in configs %}
+            <div class="config-item">
+                <h4 class="config-title">Конфигурация #{{ config.id }}</h4>
+                <p><strong>Цена:</strong> {{ config.price }}руб.</p>
+                <p><strong>Процессор:</strong> {{ config.cpu }} Площадка {{ config.gpu_market }}</p>
+                <p><strong>Видеокарта:</strong> {{ config.gpu }} Площадка {{ config.cpu_market }}</p>
+                <p><strong>Оперативная память:</strong> {{ config.ram }} Площадка {{ config.ram_market }}</p>
+                <p><strong>Блок питания:</strong> {{ config.power_supply }} Площадка {{ config.power_supply_market }}</p>
+                <p><strong>Накопитель:</strong> {{ config.memory }} Площадка {{ config.memory_market }}</p>
+                <p><strong>Охлаждение:</strong> {{ config.cooler }} Площадка {{ config.cooler_market }}</p>
+                <p><strong>Корпус:</strong> {{ config.case }} Площадка {{ config.case_market }}</p>
+                <p><strong>Материнская плата:</strong> {{ config.motherboard }} Площадка {{ config.motherboard_market }}</p>
+            </div>
+            {% empty %}
+            <p>Пока нет сохранённых конфигураций</p>
+            {% endfor %}
+        </div>
+
+        <a href="{% url 'ComplectPCapp:home' %}" class="btn">На главную</a>
+    </div>
+</body>
+</html>
