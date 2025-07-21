@@ -21,5 +21,14 @@ class PC(models.Model):
     case_market = models.CharField(max_length=100, blank=True, null=True)
     motherboard_market = models.CharField(max_length=100, blank=True, null=True)
 
+    gpu_link = models.TextField(blank=True, null=True)
+    cpu_link = models.TextField(blank=True, null=True)
+    ram_link = models.TextField(blank=True, null=True)
+    power_supply_link = models.TextField(blank=True, null=True)
+    memory_link = models.TextField(blank=True, null=True)
+    cooler_link = models.TextField(blank=True, null=True)
+    case_link = models.TextField(blank=True, null=True)
+    motherboard_link = models.TextField(blank=True, null=True)
+
     def __str__(self):
         return f"Конфигурация ПК #{self.id}"
