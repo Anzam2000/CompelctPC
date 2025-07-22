@@ -6,9 +6,7 @@ import re
 import undetected_chromedriver as uc
 import pandas as pd
 import random
-import os
-import platform
-import subprocess
+import sqlite3
 from abc import abstractmethod
 
 class DataParser:
@@ -358,29 +356,76 @@ class BrowserManager:
         driver.execute_script("arguments[0].scrollIntoView(true);", next_page_elem)
         sleep(random.uniform(1, 3))
 
-
 class DataSaver:
     @classmethod
-    def open_file(cls, file_path):
-        """Открывает файл в программе по умолчанию для текущей ОС."""
-        try:
-            if platform.system() == 'Windows':
-                os.startfile(file_path)  # Работает только в Windows
-            elif platform.system() == 'Darwin':  # macOS
-                subprocess.run(['open', file_path], check=True)
-            else:  # Linux и другие UNIX-подобные
-                subprocess.run(['xdg-open', file_path], check=True)
-        except Exception as e:
-            print(f"❌ Ошибка при открытии файла: {e}")
+    @abstractmethod
+    def save_data(cls, params_dict, file_name):
+        pass
 
+
+class ExcelDataSaver(DataSaver):
     @classmethod
-    def save_to_excel(cls, params_dict, file_name):
+    def save_data(cls, params_dict, file_name):
         # Создаем DataFrame
         df = pd.DataFrame(params_dict)
 
         # Сохраняем в Excel
-        df.to_excel(file_name, index=False)
-        print(f"Данные успешно сохранены в {file_name}")
+        df.to_excel(f'{file_name}.xlsx', index=False)
+        print(f"Данные успешно сохранены в {file_name}.xlsx")
+
+
+class SQLDataSaver(DataSaver):
+    @classmethod
+    def save_data(cls, params_dict, table_name):
+        conn = sqlite3.connect('db.sqlite3')  # Создает/подключается к файлу БД
+
+        if not params_dict:
+            return
+
+        cursor = conn.cursor()
+
+        # Получаем все уникальные ключи из всех словарей
+        all_keys = set()
+        for d in params_dict:
+            all_keys.update(d.keys())
+        columns = list(all_keys)
+
+        # Создаем таблицу, если ее нет
+        cursor.execute(f"""
+            CREATE TABLE IF NOT EXISTS {table_name} (
+                {', '.join(f'{col} TEXT' for col in columns)}
+            )
+        """)
+
+        # Вставляем данные
+        for d in params_dict:
+            placeholders = ', '.join(['?'] * len(columns))
+            values = [d.get(col) for col in columns]
+            cursor.execute(f"""
+                INSERT INTO {table_name} ({', '.join(columns)})
+                VALUES ({placeholders})
+            """, values)
+
+        conn.commit()
+
+    @classmethod
+    def clear_database(cls, db_file):
+        """Удаляет все данные из всех таблиц, сохраняя структуру"""
+        conn = sqlite3.connect(db_file)
+        cursor = conn.cursor()
+
+        # Получаем список всех таблиц в базе
+        cursor.execute("SELECT name FROM sqlite_master WHERE type='table'")
+        tables = [table[0] for table in cursor.fetchall()]
+
+        # Удаляем данные из каждой таблицы
+        for table in tables:
+            cursor.execute(f"DELETE FROM {table}")
+
+        # Сбрасываем автоинкрементные счетчики
+        cursor.execute("VACUUM")
+        conn.commit()
+        conn.close()
 
 class DNSScraper:
     def __init__(self):
@@ -402,7 +447,7 @@ class DNSScraper:
             EC.presence_of_element_located((By.XPATH, self.xpathes['name'])))
 
         while self.driver.find_element(By.XPATH, self.xpathes["next-page"]):
-            BrowserManager.human_like_actions(self.xpathes["next-page"])  # Имитируем поведение человека
+            BrowserManager.human_like_actions(self.xpathes["next-page"], self.driver)  # Имитируем поведение человека
             button = WebDriverWait(self.driver, 10).until(
                 EC.element_to_be_clickable(
                     (By.XPATH, self.xpathes["next-page"]))
@@ -441,14 +486,6 @@ class Config:
         'colling_system': "https://www.dns-shop.ru/catalog/17a9cc9816404e77/sistemy-zhidkostnogo-ohlazhdeniya/",
 
     }
-    OUTPUT_FILES = {
-        'ram': 'ram.xlsx',
-        'cpu': 'cpu.xlsx',
-        'gpu': 'gpu.xlsx',
-        'cpu_cooler': 'cpu_cooler.xlsx',
-        'motherboard': 'motherboard.xlsx',
-        'cooling_system': 'cooling_system.xlsx'
-    }
 
 class ParserFactory:
     @staticmethod
@@ -465,7 +502,7 @@ class ParserFactory:
 
 class Project:
     @classmethod
-    def _start(cls):
+    def _start(cls, ds_choise):
         scraper = DNSScraper()
 
         for component in ['ram', 'cpu', 'gpu', 'cpu_cooler', 'motherboard', 'cooling_system']:
@@ -473,17 +510,13 @@ class Project:
             data = scraper.scrape_page(url)
             parser = ParserFactory.get_parser(component)
             result = parser.data_dict_creator(data)
-            DataSaver.save_to_excel(result, Config.OUTPUT_FILES[component])
+            if ds_choise == 'Y':
+                ExcelDataSaver.save_data(result, component)
+                continue
+            SQLDataSaver.save_data(result, component)
 
         scraper.close()
 
-        # # Запуск Excel
-        # file_path = 'processors.xlsx'  # путь к вашему файлу
-        # if os.path.exists(file_path):
-        #     open_file(file_path)
-        # else:
-        #     print("Файл не найден!")
-
 if __name__ == "__main__":
     # Запуск
-    Project._start()
+    Project._start(input("Would you like save to Excel? Write Y/N (default N)"))
