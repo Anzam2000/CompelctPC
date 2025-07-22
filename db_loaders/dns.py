@@ -9,13 +9,20 @@ import random
 import os
 import platform
 import subprocess
+from abc import abstractmethod
 
 class DataParser:
     @classmethod
-    def ram_data_dict_creator(cls, ram_info):
-        ram_string = ram_info[0]
-        price = ram_info[1]
-        href = ram_info[2]
+    @abstractmethod
+    def data_dict_creator(cls, component_info):
+        pass
+
+class RamDataParser(DataParser):
+    @classmethod
+    def data_dict_creator(cls, component_info):
+        ram_string = component_info[0]
+        price = component_info[1]
+        href = component_info[2]
         # Дополнительные поиски для параметров
         capacity_match = re.search(r'([\d.]+)\s*Г?Б', ram_string, re.IGNORECASE)
         type_match = re.search(r'(DDR\d+)', ram_string, re.IGNORECASE)
@@ -61,11 +68,12 @@ class DataParser:
             print(f"Ошибка обработки данных: {e} в строке: {ram_string}")
             return None
 
+class MotherboardDataParser(DataParser):
     @classmethod
-    def motherboard_data_dict_creator(cls, mb_info):
-        mb_string = mb_info[0]
-        price = mb_info[1]
-        href = mb_info[2]
+    def data_dict_creator(cls, component_info):
+        mb_string = component_info[0]
+        price = component_info[1]
+        href = component_info[2]
         # Основные параметры для поиска
         socket_match = re.search(r'(LGA\s\d+|BGA\d+|Socket\s*\d+|s?\d+)', mb_string, re.IGNORECASE)
         chipset_match = re.search(r'(Intel|AMD)\s*([A-Z0-9]+)', mb_string, re.IGNORECASE)
@@ -104,11 +112,12 @@ class DataParser:
             print(f"Ошибка обработки данных: {e} в строке: {mb_string}")
             return None
 
+class CpuCoolerDataParser(DataParser):
     @classmethod
-    def cpu_cooler_data_dict_creator(cls, cooler_info):
-        cooler_string = cooler_info[0]
-        price = cooler_info[1]
-        href = cooler_info[2]
+    def data_dict_creator(cls, component_info):
+        cooler_string = component_info[0]
+        price = component_info[1]
+        href = component_info[2]
         # Основные параметры для поиска
         base_match = re.search(r'основание\s*-\s*([а-яА-Яa-zA-Z]+)', cooler_string, re.IGNORECASE)
         rpm_match = re.search(r'(\d+)\s*об/\s*мин', cooler_string)
@@ -141,11 +150,13 @@ class DataParser:
             print(f"Ошибка обработки данных: {e} в строке: {cooler_string}")
             return None
 
+
+class CoolingSystemDataParser(DataParser):
     @classmethod
-    def cooling_system_data_dict_creator(cls, cooling_info):
-        cooling_string = cooling_info[0]
-        price = cooling_info[1]
-        href = cooling_info[2]
+    def data_dict_creator(cls, component_info):
+        cooling_string = component_info[0]
+        price = component_info[1]
+        href = component_info[2]
         # Основные параметры для поиска
         fan_size_match = re.search(r'(\d+)\s*мм', cooling_string)
         sections_match = re.search(r'(\d+)\s*секци[ияей]', cooling_string)
@@ -191,11 +202,12 @@ class DataParser:
             print(f"Ошибка обработки данных: {e} в строке: {cooling_string}")
             return None
 
+class CpuDataParser(DataParser):
     @classmethod
-    def cpu_data_dict_creator(cls, cpu_info):
-        cpu_string = cpu_info[0]
-        price = cpu_info[1]
-        href = cpu_info[2]
+    def data_dict_creator(cls, component_info):
+        cpu_string = component_info[0]
+        price = component_info[1]
+        href = component_info[2]
         # Универсальный шаблон для всех типов процессоров
         pattern = r"""
             ^(.*?)\s*                # Название процессора
@@ -239,8 +251,9 @@ class DataParser:
             print(f"Ошибка обработки данных: {e} в строке: {cpu_string}")
             return None
 
+class GpuDataParser(DataParser):
     @classmethod
-    def gpu_data_dict_creator(cls, gpu_info, price, href):
+    def data_dict_creator(cls, component_info):
         def extract_connectors(gpu_string):
             connectors = []
             connector_patterns = {
@@ -256,9 +269,9 @@ class DataParser:
 
             return ", ".join(connectors) if connectors else "N/A"
 
-        gpu_string = gpu_info[0]
-        price = gpu_info[1]
-        href = gpu_info[2]
+        gpu_string = component_info[0]
+        price = component_info[1]
+        href = component_info[2]
 
         # Дополнительные поиски для параметров, которые могут быть в разных местах
         memory_bus_match = re.search(r'([\d.]+)\s*бит', gpu_string)
@@ -404,7 +417,6 @@ class DNSScraper:
 
         return [names, prices, hrefs]
 
-    @staticmethod
     def __find_names(self):
         # Поиск имен
         return [name.text for name in self.driver.find_elements(By.XPATH, self.xpathes['name'])]
@@ -416,29 +428,54 @@ class DNSScraper:
     def __find_hrefs(self):
         return [href.get_attribute('href') for href in self.driver.find_elements(By.XPATH, self.xpathes['href'])]
 
+    def close(self):
+        self.driver.quit()
+
+class Config:
+    URLS = {
+        'ram': "https://www.dns-shop.ru/catalog/17a89a3916404e77/operativnaya-pamyat-dimm/",
+        'cpu': "https://www.dns-shop.ru/catalog/17a899cd16404e77/processory/",
+        'gpu': "https://www.dns-shop.ru/catalog/17a89aab16404e77/videokarty/",
+        'cpu_cooler': "https://www.dns-shop.ru/catalog/17a9cc2d16404e77/kulery-dlya-processorov/",
+        'motherboard': "https://www.dns-shop.ru/catalog/17a89a0416404e77/materinskie-platy/",
+        'colling_system': "https://www.dns-shop.ru/catalog/17a9cc9816404e77/sistemy-zhidkostnogo-ohlazhdeniya/",
+
+    }
+    OUTPUT_FILES = {
+        'ram': 'ram.xlsx',
+        'cpu': 'cpu.xlsx',
+        'gpu': 'gpu.xlsx',
+        'cpu_cooler': 'cpu_cooler.xlsx',
+        'motherboard': 'motherboard.xlsx',
+        'cooling_system': 'cooling_system.xlsx'
+    }
+
+class ParserFactory:
+    @staticmethod
+    def get_parser(component_type):
+        parsers = {
+            'ram': RamDataParser,
+            'cpu': CpuDataParser,
+            'gpu': GpuDataParser,
+            'cpu_cooler': CpuCoolerDataParser,
+            'motherboard': MotherboardDataParser,
+            'cooling_system': CoolingSystemDataParser
+        }
+        return parsers.get(component_type.lower())
+
 class Project:
     @classmethod
     def _start(cls):
-        scraper = DNSScraper
+        scraper = DNSScraper()
 
-        DataSaver.save_to_excel(DataParser.ram_data_dict_creator(scraper.scrape_page(
-            "https://www.dns-shop.ru/catalog/17a89a3916404e77/operativnaya-pamyat-dimm/")),
-                                "ram.xlsx")
-        DataSaver.save_to_excel(DataParser.cpu_data_dict_creator(scraper.scrape_page(
-            "https://www.dns-shop.ru/catalog/17a899cd16404e77/processory/")),
-                                "cpu.xlsx")
-        DataSaver.save_to_excel(DataParser.gpu_data_dict_creator(scraper.scrape_page(
-            "https://www.dns-shop.ru/catalog/17a89aab16404e77/videokarty/")),
-                                "gpu.xlsx")
-        DataSaver.save_to_excel(DataParser.cpu_cooler_data_dict_creator(scraper.scrape_page(
-            "https://www.dns-shop.ru/catalog/17a9cc2d16404e77/kulery-dlya-processorov/")),
-                                "cpu_cooler.xlsx")
-        DataSaver.save_to_excel(DataParser.motherboard_data_dict_creator(scraper.scrape_page(
-            "https://www.dns-shop.ru/catalog/17a89a0416404e77/materinskie-platy/")),
-                                "motherboard.xlsx")
-        DataSaver.save_to_excel(DataParser.cooling_system_data_dict_creator(scraper.scrape_page(
-            "https://www.dns-shop.ru/catalog/17a9cc9816404e77/sistemy-zhidkostnogo-ohlazhdeniya/")),
-                                "cooling_system.xlsx")
+        for component in ['ram', 'cpu', 'gpu', 'cpu_cooler', 'motherboard', 'cooling_system']:
+            url = Config.URLS[component]
+            data = scraper.scrape_page(url)
+            parser = ParserFactory.get_parser(component)
+            result = parser.data_dict_creator(data)
+            DataSaver.save_to_excel(result, Config.OUTPUT_FILES[component])
+
+        scraper.close()
 
         # # Запуск Excel
         # file_path = 'processors.xlsx'  # путь к вашему файлу
@@ -450,7 +487,3 @@ class Project:
 if __name__ == "__main__":
     # Запуск
     Project._start()
-
-
-
-
