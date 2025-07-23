@@ -446,7 +446,18 @@ class DNSScraper:
         WebDriverWait(self.driver, 15).until(
             EC.presence_of_element_located((By.XPATH, self.xpathes['name'])))
 
+        # Парсинг всех страниц
         while self.driver.find_element(By.XPATH, self.xpathes["next-page"]):
+            BrowserManager.human_like_actions(self.xpathes["next-page"], self.driver)  # Имитируем поведение человека
+            button = WebDriverWait(self.driver, 10).until(
+                EC.element_to_be_clickable(
+                    (By.XPATH, self.xpathes["next-page"]))
+            )
+            button.click()
+            sleep(random.uniform(0.5, 1.5))
+
+       # Парсинг любого количества
+       for i in range(10):
             BrowserManager.human_like_actions(self.xpathes["next-page"], self.driver)  # Имитируем поведение человека
             button = WebDriverWait(self.driver, 10).until(
                 EC.element_to_be_clickable(
