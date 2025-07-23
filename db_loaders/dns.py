@@ -12,15 +12,12 @@ from abc import abstractmethod
 class DataParser:
     @classmethod
     @abstractmethod
-    def data_dict_creator(cls, component_info):
+    def data_dict_creator(cls, string, price, href):
         pass
 
 class RamDataParser(DataParser):
     @classmethod
-    def data_dict_creator(cls, component_info):
-        ram_string = component_info[0]
-        price = component_info[1]
-        href = component_info[2]
+    def data_dict_creator(cls, ram_string, price, href):
         # Дополнительные поиски для параметров
         capacity_match = re.search(r'([\d.]+)\s*Г?Б', ram_string, re.IGNORECASE)
         type_match = re.search(r'(DDR\d+)', ram_string, re.IGNORECASE)
@@ -68,10 +65,7 @@ class RamDataParser(DataParser):
 
 class MotherboardDataParser(DataParser):
     @classmethod
-    def data_dict_creator(cls, component_info):
-        mb_string = component_info[0]
-        price = component_info[1]
-        href = component_info[2]
+    def data_dict_creator(cls, mb_string, price, href):
         # Основные параметры для поиска
         socket_match = re.search(r'(LGA\s\d+|BGA\d+|Socket\s*\d+|s?\d+)', mb_string, re.IGNORECASE)
         chipset_match = re.search(r'(Intel|AMD)\s*([A-Z0-9]+)', mb_string, re.IGNORECASE)
@@ -103,7 +97,7 @@ class MotherboardDataParser(DataParser):
                 cpu_alt_match = re.search(r'\b(?:Intel|AMD)\b.*?(?:Celeron|Core|Ryzen|Athlon)\s*\w*', mb_string,
                                           re.IGNORECASE)
                 if cpu_alt_match:
-                    result["Поддержка CPU"] = cpu_alt_match.group().strip()
+                    result["Поддержка CPU"] = cpu_alt_match.group(0).strip()
 
             return result
         except (ValueError, AttributeError, IndexError) as e:
@@ -112,10 +106,7 @@ class MotherboardDataParser(DataParser):
 
 class CpuCoolerDataParser(DataParser):
     @classmethod
-    def data_dict_creator(cls, component_info):
-        cooler_string = component_info[0]
-        price = component_info[1]
-        href = component_info[2]
+    def data_dict_creator(cls, cooler_string, price, href):
         # Основные параметры для поиска
         base_match = re.search(r'основание\s*-\s*([а-яА-Яa-zA-Z]+)', cooler_string, re.IGNORECASE)
         rpm_match = re.search(r'(\d+)\s*об/\s*мин', cooler_string)
@@ -151,10 +142,7 @@ class CpuCoolerDataParser(DataParser):
 
 class CoolingSystemDataParser(DataParser):
     @classmethod
-    def data_dict_creator(cls, component_info):
-        cooling_string = component_info[0]
-        price = component_info[1]
-        href = component_info[2]
+    def data_dict_creator(cls, cooling_string, price, href):
         # Основные параметры для поиска
         fan_size_match = re.search(r'(\d+)\s*мм', cooling_string)
         sections_match = re.search(r'(\d+)\s*секци[ияей]', cooling_string)
@@ -202,10 +190,7 @@ class CoolingSystemDataParser(DataParser):
 
 class CpuDataParser(DataParser):
     @classmethod
-    def data_dict_creator(cls, component_info):
-        cpu_string = component_info[0]
-        price = component_info[1]
-        href = component_info[2]
+    def data_dict_creator(cls, cpu_string, price, href):
         # Универсальный шаблон для всех типов процессоров
         pattern = r"""
             ^(.*?)\s*                # Название процессора
@@ -251,7 +236,7 @@ class CpuDataParser(DataParser):
 
 class GpuDataParser(DataParser):
     @classmethod
-    def data_dict_creator(cls, component_info):
+    def data_dict_creator(cls, gpu_string, price, href):
         def extract_connectors(gpu_string):
             connectors = []
             connector_patterns = {
@@ -266,10 +251,6 @@ class GpuDataParser(DataParser):
                     connectors.append(name)
 
             return ", ".join(connectors) if connectors else "N/A"
-
-        gpu_string = component_info[0]
-        price = component_info[1]
-        href = component_info[2]
 
         # Дополнительные поиски для параметров, которые могут быть в разных местах
         memory_bus_match = re.search(r'([\d.]+)\s*бит', gpu_string)
@@ -348,12 +329,8 @@ class BrowserManager:
     @staticmethod
     # Эмулируем человеческое поведение
     def human_like_actions(next_page, driver):
-        driver.execute_script("window.scrollTo(0, document.body.scrollHeight * 0.2);")
-        sleep(random.uniform(0.5, 1.5))
-        driver.execute_script("window.scrollTo(0, document.body.scrollHeight * 0.5);")
-        sleep(random.uniform(0.7, 2))
         next_page_elem = driver.find_element(By.XPATH, next_page)
-        driver.execute_script("arguments[0].scrollIntoView(true);", next_page_elem)
+        driver.execute_script("arguments[0].scrollIntoView({behavior: 'smooth', block: 'center', inline: 'center'});", next_page_elem)
         sleep(random.uniform(1, 3))
 
 class DataSaver:
@@ -456,8 +433,8 @@ class DNSScraper:
             button.click()
             sleep(random.uniform(0.5, 1.5))
 
-       # Парсинг любого количества
-       for i in range(10):
+        # Парсинг любого количества
+        for i in range(2):
             BrowserManager.human_like_actions(self.xpathes["next-page"], self.driver)  # Имитируем поведение человека
             button = WebDriverWait(self.driver, 10).until(
                 EC.element_to_be_clickable(
@@ -494,7 +471,7 @@ class Config:
         'gpu': "https://www.dns-shop.ru/catalog/17a89aab16404e77/videokarty/",
         'cpu_cooler': "https://www.dns-shop.ru/catalog/17a9cc2d16404e77/kulery-dlya-processorov/",
         'motherboard': "https://www.dns-shop.ru/catalog/17a89a0416404e77/materinskie-platy/",
-        'colling_system': "https://www.dns-shop.ru/catalog/17a9cc9816404e77/sistemy-zhidkostnogo-ohlazhdeniya/",
+        'cooyling_system': "https://www.dns-shop.ru/catalog/17a9cc9816404e77/sistemy-zhidkostnogo-ohlazhdeniya/",
 
     }
 
@@ -513,14 +490,18 @@ class ParserFactory:
 
 class Project:
     @classmethod
-    def _start(cls, ds_choise):
+    def start(cls, ds_choise):
         scraper = DNSScraper()
 
         for component in ['ram', 'cpu', 'gpu', 'cpu_cooler', 'motherboard', 'cooling_system']:
             url = Config.URLS[component]
             data = scraper.scrape_page(url)
             parser = ParserFactory.get_parser(component)
-            result = parser.data_dict_creator(data)
+            result = [parser.data_dict_creator(name, price, href) for name, price, href in zip(data[0], data[1], data[2])]
+            for i in result:
+                if not i:
+                    result.pop(result.index(i))
+
             if ds_choise == 'Y':
                 ExcelDataSaver.save_data(result, component)
                 continue
@@ -530,4 +511,4 @@ class Project:
 
 if __name__ == "__main__":
     # Запуск
-    Project._start(input("Would you like save to Excel? Write Y/N (default N)"))
+    Project.start(input("Would you like save to Excel? Write Y/N (default N)"))
