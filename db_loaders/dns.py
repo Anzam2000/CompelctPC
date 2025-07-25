@@ -471,7 +471,7 @@ class Config:
         'gpu': "https://www.dns-shop.ru/catalog/17a89aab16404e77/videokarty/",
         'cpu_cooler': "https://www.dns-shop.ru/catalog/17a9cc2d16404e77/kulery-dlya-processorov/",
         'motherboard': "https://www.dns-shop.ru/catalog/17a89a0416404e77/materinskie-platy/",
-        'cooyling_system': "https://www.dns-shop.ru/catalog/17a9cc9816404e77/sistemy-zhidkostnogo-ohlazhdeniya/",
+        'cooling_system': "https://www.dns-shop.ru/catalog/17a9cc9816404e77/sistemy-zhidkostnogo-ohlazhdeniya/",
 
     }
 
