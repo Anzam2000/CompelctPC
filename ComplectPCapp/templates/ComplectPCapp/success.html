@@ -18,14 +18,30 @@
             <div class="config-item">
                 <h4 class="config-title">Конфигурация #{{ config.id }}</h4>
                 <p><strong>Цена:</strong> {{ config.price }}руб.</p>
-                <p><strong>Процессор:</strong> {{ config.cpu }};   Площадка {{ config.gpu_market }}; Ссылка {{ config.gpu_link}}</p>
-                <p><strong>Видеокарта:</strong> {{ config.gpu }}   Площадка {{ config.cpu_market }} Ссылка {{ config.cpu_link}}</p>
-                <p><strong>Оперативная память:</strong> {{ config.ram }}   Площадка {{ config.ram_market }} Ссылка {{ config.ram_link}}</p>
-                <p><strong>Блок питания:</strong> {{ config.power_supply }}   Площадка {{ config.power_supply_market }} Ссылка {{ config.power_supply_link}}</p>
-                <p><strong>Накопитель:</strong> {{ config.memory }}   Площадка {{ config.memory_market }} Ссылка {{ config.memory_link}}</p>
-                <p><strong>Охлаждение:</strong> {{ config.cooler }}   Площадка {{ config.cooler_market }} Ссылка {{ config.cooler_link}}</p>
-                <p><strong>Корпус:</strong> {{ config.case }}   Площадка {{ config.case_market }} Ссылка {{ config.case_link}}</p>
-                <p><strong>Материнская плата:</strong> {{ config.motherboard }}   Площадка {{ config.motherboard_market }} Ссылка {{ config.motherboard_link}}</p>
+                <p><strong>Процессор:</strong> {{ config.cpu }}</p>
+                <p>Площадка {{ config.cpu_market }} </p>
+                <p>Ссылка {{ config.cpu_link}} </p>
+                <p><strong>Видеокарта:</strong> {{ config.gpu }}</p>
+                <p>Площадка {{ config.gpu_market }} </p>
+                <p>Ссылка {{ config.gpu_link}} </p>
+                <p><strong>Оперативная память:</strong> {{ config.ram }}</p>
+                <p>Площадка {{ config.ram_market }} </p>
+                <p>Ссылка {{ config.ram_link}} </p>
+                <p><strong>Блок питания:</strong> {{ config.power_supply }}</p>
+                <p>Площадка {{ config.power_supply_market }} </p>
+                <p>Ссылка {{ config.power_supply_link}} </p>
+                <p><strong>Накопитель:</strong> {{ config.memory }}</p>
+                <p>Площадка {{ config.memory_market }} </p>
+                <p>Ссылка {{ config.memory_link}} </p>
+                <p><strong>Охлаждение:</strong> {{ config.cooler }}</p>
+                <p>Площадка {{ config.cooler_market }} </p>
+                <p>Ссылка {{ config.cooler_link}} </p>
+                <p><strong>Корпус:</strong> {{ config.case }}</p>
+                <p>Площадка {{ config.case_market }} </p>
+                <p>Ссылка {{ config.case_link}} </p>
+                <p><strong>Материнская плата:</strong> {{ config.motherboard }}</p>
+                <p>Площадка {{ config.motherboard_market }} </p>
+                <p>Ссылка {{ config.motherboard_link}} </p>
             </div>
             {% empty %}
             <p>Пока нет сохранённых конфигураций</p>
