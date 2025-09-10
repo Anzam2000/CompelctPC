@@ -358,7 +358,7 @@ class SQLDataSaver(DataSaver):
             print(f"Нет данных для сохранения в таблицу {table_name}")
             return
 
-        conn = sqlite3.connect('file:/Users/a1234/PycharmProjects/ComplectPc/ComplectPC/db.sqlite3?mode=ro', uri=True)
+        conn = sqlite3.connect(r'C:\Users\user\PycharmProjects\ComplectPC\ComplectPC\db.sqlite3', uri=True)
         cursor = conn.cursor()
 
         # Получаем все уникальные ключи из всех словарей
