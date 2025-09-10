@@ -132,7 +132,7 @@ class ComponentScorer:
         
         # Чипсет (примерные оценки)
         chipset_scores = {
-            'H610': 40, 'B660': 60, 'H670': 70, 'Z690': 85, 'Z790': 95,
+            'H610': 40,  'H670': 60, 'B660': 70, 'Z690': 85, 'Z790': 95,
             'A520': 40, 'B550': 65, 'X570': 85, 'X670': 95
         }
         chipset_score = chipset_scores.get(specs['chipset'], 50)
