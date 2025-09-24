@@ -482,7 +482,7 @@ class DNSScraper:
 
     def __find_prices(self):
         # Поиск и обработка цен
-        return [price.text.replace('\u202f', '').replace('P', '₽').replace('\u2009', '') for price in self.driver.find_elements(By.XPATH, self.xpathes['price'])]
+        return [price.text.replace('\u202f', '').replace('P', '').replace('\u2009', '') for price in self.driver.find_elements(By.XPATH, self.xpathes['price'])]
 
     def __find_hrefs(self):
         return [href.get_attribute('href') for href in self.driver.find_elements(By.XPATH, self.xpathes['href'])]
