@@ -84,10 +84,15 @@ from .models import PC
 
 
 def submit_config(request):
+    print('йоу1')
     if request.method == 'POST':
         try:
+            print('йоу')
             # Магазины всегда из формы
             price = request.POST.get('price', '')
+            print(price)
+            price = int(price)
+            print(price)
             gpu_market = request.POST.get('gpu_market', '')
             cpu_market = request.POST.get('cpu_market', '')
             ram_market = request.POST.get('ram_market', '')
@@ -96,7 +101,77 @@ def submit_config(request):
             cooler_market = request.POST.get('cooler_market', '')
             case_market = request.POST.get('case_market', '')
             motherboard_market = request.POST.get('motherboard_market', '')
+            db_path = r"C:\Users\user\PycharmProjects\ComplectPC\ComplectPC\db.sqlite3"
+            with sqlite3.connect(db_path) as conn:
+                price_ranges = {
+                    "gpu": price * 0.50,  # 50% - Видеокарта
+                    "case": 6000,  # до 6000 руб - Корпус
+                    "cpu": price * 0.12,  # 12% - Процессор
+                    "motherboard": price * 0.12,  # 12% - Материнская плата
+                    "ram": price * 0.045,  # 4.5% - Оперативная память
+                    "cpu_cooler": price * 0.025  # 2.5% - Кулер
+                }
+                cursor = conn.cursor()
 
+                # Получаем все компоненты в одном блоке соединения
+                cursor.execute("SELECT Название FROM cpu WHERE Цена <= ? ORDER BY Цена DESC LIMIT 1",
+                               (price_ranges["cpu"],))
+                cpu = cursor.fetchone()[0]
+
+                cursor.execute("SELECT Название FROM gpu WHERE Цена <= ? ORDER BY Цена DESC LIMIT 1",
+                               (price_ranges["gpu"],))
+                gpu_result = cursor.fetchone()
+                gpu = gpu_result[0] if gpu_result else "Не найден в бюджете"
+
+                cursor.execute("SELECT Название FROM ram WHERE Цена <= ? ORDER BY Цена DESC LIMIT 1",
+                               (price_ranges["ram"],))
+                ram_result = cursor.fetchone()
+                ram = ram_result[0] if ram_result else "Не найден в бюджете"
+
+                cursor.execute("SELECT Название FROM cpu_cooler WHERE Цена <= ? ORDER BY Цена DESC LIMIT 1",
+                               (price_ranges["cpu_cooler"],))
+                cooler_result = cursor.fetchone()
+                cooler = cooler_result[0] if cooler_result else "Не найден в бюджете"
+
+                cursor.execute("SELECT Название FROM motherboard WHERE Цена <= ? ORDER BY Цена DESC LIMIT 1",
+                               (price_ranges["motherboard"],))
+                mb_result = cursor.fetchone()
+                mb = mb_result[0] if mb_result else "Не найден в бюджете"
+            with sqlite3.connect(db_path) as conn:
+                cursor = conn.cursor()
+
+                # Получаем только первую строку
+                cursor.execute("SELECT Ссылка FROM cpu LIMIT 1")
+                cpu_link = cursor.fetchone()
+                cpu_link = cpu_link[0]
+            with sqlite3.connect(db_path) as conn:
+                cursor = conn.cursor()
+
+                # Получаем только первую строку
+                cursor.execute("SELECT Ссылка FROM gpu LIMIT 1")
+                gpu_link = cursor.fetchone()
+                gpu_link = gpu_link[0]
+            with sqlite3.connect(db_path) as conn:
+                cursor = conn.cursor()
+
+                # Получаем только первую строку
+                cursor.execute("SELECT Ссылка FROM ram LIMIT 1")
+                ram_link = cursor.fetchone()
+                ram_link = ram_link[0]
+            with sqlite3.connect(db_path) as conn:
+                cursor = conn.cursor()
+
+                # Получаем только первую строку
+                cursor.execute("SELECT Ссылка FROM cpu_cooler LIMIT 1")
+                cooler_link = cursor.fetchone()
+                cooler_link = cooler_link[0]
+            with sqlite3.connect(db_path) as conn:
+                cursor = conn.cursor()
+
+                # Получаем только первую строку
+                cursor.execute("SELECT Ссылка FROM motherboard LIMIT 1")
+                mb_link = cursor.fetchone()
+                mb_link = mb_link[0]
             # УБРАТЬ ЗАПЯТЫЕ после get() - они превращают значения в кортежи!
             gpu_form = request.POST.get('GPU', '')
             cpu_form = request.POST.get('CPU', '')
